@@ -1,0 +1,185 @@
+﻿@*@model IEnumerable<TrainerClientADOnet.Models.DTO.ProgramGoalTypeDTO>*@
+@model PagedList.IPagedList<TrainerClientADOnet.Models.DTO.ProgramGoalTypeDTO>
+@using PagedList.Mvc
+@using Microsoft.AspNet.Identity;
+@using TrainerClientADOnet.Models;
+@using TrainerClientADOnet.Utilities;
+@{
+    ViewBag.Title = "AllPrograms";
+}
+<style>
+    .ul.pagination {
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+    }
+
+    ul.pagination li {
+        display: inline;
+    }
+
+        ul.pagination li a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color .3s;
+        }
+
+            ul.pagination li a.active {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            ul.pagination li a:hover:not(.active) {
+                background-color: #ddd;
+            }
+</style>
+
+@{
+    Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+    var clientID = HttpUtility.ParseQueryString(uri.Query).Get("clientId").Trim();
+}
+
+@if (User.IsInRole("Trener"))
+{
+    <h2>
+        All client's programs
+    </h2>
+}
+else
+{
+    <h2>
+        All yours programs
+    </h2>
+}
+
+@*Ovo samo moze da TRENER vidi*@
+@if (User.IsInRole("Trener"))
+{
+    <p>
+        @Html.ActionLink("Create New Program", "CreateProgramForClient", new { clientId = clientID }, null)
+        <!-- Html.ActionLink("Create New Program", "CreateProgramForClient", new { client_id = (string)Url.RequestContext.RouteData.Values["clientId"] }) -->
+    </p>
+}
+@*
+    <p>
+        @Html.DropDownListFor(x =>
+            x[0].GoalTypeId,
+            (IEnumerable<SelectListItem>)Utility.returnSelectListOfGoalTypes(),
+            new
+            {
+                @class = "form-control selectpicker",
+                @Value = @Model[0].GoalTypeId,
+                onchange = "this.form.submit();",
+                data_live_search = "true"
+        })
+    </p>
+
+    @using (Html.BeginForm("Hello", "Hello"))
+    {
+        <div class="form-group">
+            <label class="control-label"> Select A Customer </label>
+            <select class="selectpicker bs-select form-control"
+                    name="CustomerID"
+                    onchange="this.form.submit()"
+                    data-show-subtext="true"
+                    data-live-search="true">
+                @foreach (var Customer in @Model.CustomerSelect)
+                {
+                    <option value="@Customer.CustomerID"
+                            data-subtext="@Customer.ContactName">
+                        @Customer.Name
+                    </option>
+                }
+                <select>
+                    <input type="hidden" name="SearchButton" value="true">
+        </div>
+    }
+*@
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model[0].Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model[0].StartTime)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model[0].EndTime)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model[0].ProgramType)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <th>
+                @Html.DisplayFor(model => item.Name)
+            </th>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndTime)
+            </td>
+            <th>
+                @Html.DisplayFor(model => item.ProgramType)
+            </th>
+            <td>
+                @*Ovo samo moze da TRENER vidi*@
+                @if (User.IsInRole("Trener"))
+                {
+
+                    var clientIdFromUri = HttpUtility.ParseQueryString(uri.Query).Get("clientId").Trim();
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id, clientId = item.ClientId.Trim() }) @Html.Raw(" | ")
+                    @Html.ActionLink("Details", "Details", new { id = item.Id }, null) @Html.Raw(" | ")
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id, clientId = clientIdFromUri }) @Html.Raw(" | ")
+                }
+                @{
+                    DateTime thisWeekMonday = Utility.GetThisWeekMonday();
+                    
+                }
+                @if (item.IsMeal)
+                {
+                    @Html.ActionLink("Plan", "MealPlanForProgram", "Meal", new { programId = item.Id, monday = thisWeekMonday}, null)
+                }
+                else
+                {
+                    @Html.ActionLink("Plan", "TrainingPlanForProgram", "Training", new { programId = item.Id, monday = thisWeekMonday}, null)
+                }
+
+            </td>
+        </tr>
+    }
+
+</table>
+<p>
+    @Html.ActionLink("Back to clients", "Index", "Client")
+</p>
+  </div>
+          </center>
+
+<div id="container" style="margin-left: 20px">
+    <p></p>
+    <p></p>
+    <div class="pagination" style="margin-left: 400px">
+        Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)
+        of @Model.PageCount   @Html.PagedListPager(Model, page => @Url.Action("AllProgramsOfClient", "Program", new { clientId = clientID, page }));
+        @*.Replace("i", clientID));*@
+        @*of @Model.PageCount @PagedList.Mvc.HtmlHelper.PagedListPager(Html, Model, page => Url.Action("AllProgramsOfClient", "Program", new { clientId = clientID }, new { page })) *@
+
+
+    </div>
+</div>
+
+@*
+    https://stackoverflow.com/questions/8602949/generate-url-with-url-action
+    new { clientId = clientID },
+*@
+
+@*  HttpUtility.UrlDecode(Model.ElementAtOrDefault(1).ClientId).Trim()    fb0a5531-c488-4b91-a2ee-34fe6d3e8413  *@

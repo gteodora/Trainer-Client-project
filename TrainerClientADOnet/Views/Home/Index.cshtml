@@ -1,0 +1,56 @@
+﻿@using Microsoft.AspNet.Identity;
+@{ViewBag.Title = "Home Page";
+}
+
+    <div class="jumbotron">
+        <h1>Trainer helper</h1>
+        <p class="lead">It is the best helper for trainers and clients.</p>
+        <p class="btn btn-default"> @Html.ActionLink("Manage clients", "Index", "Client")</p>
+    </div>
+
+@*ako je TRENER:*@
+@if (User.IsInRole("Trener"))
+{
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Clients</h2>
+            <p>
+                Trainer helper app gives you many possibilities when you are working with your client
+            </p>
+            <p class="btn btn-default"> @Html.ActionLink("Manage clients", "Index", "Client")</p>
+        </div>
+        <div class="col-md-4">
+            <h2>Goal types</h2>
+            <p>Trainer helper makes easy to add, remove, and update goal types.</p>
+            <p class="btn btn-default"> @Html.ActionLink("Manage goal types", "Index", "GoalType")</p>
+        </div>
+        <div class="col-md-4">
+            <h2>Meal types</h2>
+            <p>Trainer helper makes easy to add, remove, and update meal types.</p>
+            <p class="btn btn-default"> @Html.ActionLink("Manage meal types", "Index", "MealType")</p>
+        </div>
+        <div class="col-md-4">
+            <h2>Training types</h2>
+            <p>Trainer helper makes easy to add, remove, and update training types.</p>
+            <p class="btn btn-default"> @Html.ActionLink("Manage training types", "Index", "TrainingType")</p>
+        </div>
+    </div>
+}
+@*ako je ADMIN:*@
+    //todo admin pocetni view
+
+@*ako je KLIJENT:*@
+@if (User.IsInRole("Klijent"))
+{
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Programs</h2>
+            <p>
+                Trainer helper app gives you possibility to see every of your program
+            </p>
+            @{var idCurrentLoggedUser = HttpContext.Current.User.Identity.GetUserId();
+            }
+            <p class="btn btn-default"> @Html.ActionLink("Programs", "AllProgramsOfClient", "Program", new { clientId = idCurrentLoggedUser }, null)</p>
+        </div>
+    </div>
+}

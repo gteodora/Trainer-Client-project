@@ -1,0 +1,292 @@
+﻿@model TrainerClientADOnet.Models.DTO.ClientTrainingDTO
+@using TrainerClientADOnet.Models.DTO;
+@using TrainerClientADOnet.Utilities;
+<head>
+    @section Scripts{
+        <script type="text/javascript" src="@Url.Content("~/Scripts/jquery-3.3.1.min.js")"></script>
+        <script type="text/javascript">
+
+            function copyToClipboard(message) {
+                var msg = message;
+                console.log(msg);
+                //use msg now
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val(msg).select();
+                document.execCommand("copy");
+                $temp.remove();
+            };
+        </script>
+    }
+</head>
+@{
+    ViewBag.Title = "AllTrainerTrainings";
+}
+<h2>Trainings of all clients</h2>
+@{
+    //konstante u headeru tabele:
+    var firstDay = DayOfWeek.Monday;
+    var secondDay = DayOfWeek.Tuesday;
+    var thirdDay = DayOfWeek.Wednesday;
+    var fourthDay = DayOfWeek.Thursday;
+    var fifthDay = DayOfWeek.Friday;
+    var sixthDay = DayOfWeek.Saturday;
+    var seventhDay = DayOfWeek.Sunday;
+    //zbog promjene sedmice:
+    var pickedWeekMondayDate = ViewBag.SelectedMonday;
+    var pickedWeekTuesdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(1);
+    var pickedWeekWednesdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(2);
+    var pickedWeekFridayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(4);
+    var pickedWeekThursdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(3);
+    var pickedWeekSaturdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(5);
+    var pickedWeekSundayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(6);
+    //za pomjeranje sedmice:
+    var previousMonday = Utility.previousMonday(ViewBag.SelectedMonday);
+    var nextMonday = Utility.nextMonday(ViewBag.SelectedMonday);
+}
+
+@* Dugmad za prebacivanje na sledecu i prethodnu sedmicu *@
+<button type="button" onclick="location.href='@Url.Action("AllTrainerTrainings", "Training", new { monday = previousMonday })'">
+    <img alt="Previous" title="Previous week" src="~/Images/Button/left.png" style="width: 15px; height:20px">
+</button>
+<button type="button" onclick="location.href='@Url.Action("AllTrainerTrainings", "Training", new { monday  = nextMonday })'">
+
+    <img alt="Next" title="Next week" src="~/Images/Button/right.png" style="width: 15px; height:20px">
+</button>
+
+@* Prikaz izabrane sedmice *@
+@if (@pickedWeekMondayDate.ToString("MMMM").Equals(@pickedWeekSundayDate.ToString("MMMM")))
+{//prikaz: July 20 - 27, 20
+    <h3>
+        @pickedWeekMondayDate.ToString("MMMM") @pickedWeekMondayDate.ToString("dd") - @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yy")
+    </h3>
+}
+else //prikaz: July 27 - August 02, 20
+{
+    if (@pickedWeekMondayDate.ToString("yy").Equals(@pickedWeekSundayDate.ToString("yy")))
+    {
+        <h3>
+            @pickedWeekMondayDate.ToString("MMMM")  @pickedWeekMondayDate.ToString("dd") - @pickedWeekSundayDate.ToString("MMMM") @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yy")
+        </h3>
+    }
+    else //prikaz: December 27, 2020 - Januar 02, 2021
+    {
+        <h3>
+            @pickedWeekMondayDate.ToString("MMMM")  @pickedWeekMondayDate.ToString("dd"), @pickedWeekMondayDate.ToString("yyyy") - @pickedWeekSundayDate.ToString("MMMM") @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yyyy")
+        </h3>
+
+    }
+}
+
+@functions{
+    public HtmlString cell(ClientTrainingDTO training)
+    {
+        String result = "<td>";
+        var monday = ViewBag.SelectedMonday;
+        if (training.Id > 0)
+        {
+            if (Utility.IsWrittenAlreadyThisTraining(training.ProgramId, training.Description, training.StartTime, training.TrainingTypeId)) //ako je trening sa ovim osobinama, ali MANJEG SATA vec upisan, onda nista ne prikazi sem boje
+            {//Ako je u celiju tabele ovaj trening vec upisan i ima Description i Edit u polju, onda ne treba vise pisati! Treninzi ispod ce samo biti obojeni kao i taj iznad.
+                return new HtmlString("<td style=\"background-color:#ffebcc; \">" + "</td>"); //todo: dodam i delete dugme ako je zadnji trening na spisku (zbog edit forme nema smisla da se brise neki u sredini)
+
+            }
+            result = "<td style=\"background-color:#ffebcc; \">" + "<b>" + @training.FullName + "</b>" + @training.Description;
+            //TODO: slati flag da zna je li vraca ovdje ili u onu drugu formu
+            String edit = (@Html.ActionLink("Edit", "Edit", new { id = training.Id, monday = monday, startTime = training.StartTime, endTime = training.EndTime, trainingTypeId = training.TrainingTypeId, programId = training.ProgramId })).ToString();
+            var description = @training.Description;
+            var image = @Url.Content("~/Images/Button/cb5.png");
+            String copy = " <button type=\"button\" id=\"copyButton\" runat=\"server\" onClick=\" copyToClipboard(\'" + description + "\'); \" style=\"background-color: Transparent; border: none;\" >  <img src=\"" + image + "\" style=\"height:20px;width:15px;color:blue\" title=\"Copy to clipboard description\" /> </button>"; // @* *@
+
+            result = result + edit + copy;
+        }
+        else
+        {
+            String create = (@Html.ActionLink("+", "CreateWithoutClientAndProgram", new { id = training.Id, monday = monday, startTime = training.StartTime, endTime = training.EndTime, trainingTypeId = training.TrainingTypeId }, new { @class = "btnCreate" })).ToString();
+        
+             return new HtmlString(result + create + "</td>");
+        }
+        return new HtmlString(result + "</td>");
+    }
+}
+
+
+<table class="table" border="1">
+    <tr>
+        <th>
+            @String.Empty
+        </th>
+        <th>
+            @firstDay.ToString()
+            <p>
+                @pickedWeekMondayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @secondDay.ToString()
+            <p>
+                @pickedWeekTuesdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @thirdDay.ToString()
+            <p>
+                @pickedWeekWednesdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @fourthDay.ToString()
+            <p>
+                @pickedWeekThursdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @fifthDay.ToString()
+            <p>
+                @pickedWeekFridayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @sixthDay.ToString()
+            <p>
+                @pickedWeekSaturdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @seventhDay.ToString()
+            <p>
+                @pickedWeekSundayDate.ToString("dd")
+            </p>
+        </th>
+    </tr>
+
+    @{
+        ClientTrainingDTO[] eightToNine = (ClientTrainingDTO[])ViewBag.Tranings[0];
+        <tr>
+            <td><b>8h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])eightToNine)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] nineToTen = (ClientTrainingDTO[])ViewBag.Tranings[1];
+        <tr>
+            <td><b>9h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])nineToTen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] tenToEleven = (ClientTrainingDTO[])ViewBag.Tranings[2];
+        <tr>
+            <td><b>10h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])tenToEleven)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] elevenToTwelve = (ClientTrainingDTO[])ViewBag.Tranings[3];
+        <tr>
+            <td><b>11h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])elevenToTwelve)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] twelveToThirteen = (ClientTrainingDTO[])ViewBag.Tranings[4];
+        <tr>
+            <td><b>12h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])twelveToThirteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] thirteenToFourteen = (ClientTrainingDTO[])ViewBag.Tranings[5];
+        <tr>
+            <td><b>13h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])thirteenToFourteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] fourteenToFifthteen = (ClientTrainingDTO[])ViewBag.Tranings[6];
+        <tr>
+            <td><b>14h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])fourteenToFifthteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] fifthteenToSixteen = (ClientTrainingDTO[])ViewBag.Tranings[7];
+        <tr>
+            <td><b>15h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])fifthteenToSixteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] sixteenToSeventeen = (ClientTrainingDTO[])ViewBag.Tranings[8];
+        <tr>
+            <td><b>16h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])sixteenToSeventeen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] seventeenToEighteen = (ClientTrainingDTO[])ViewBag.Tranings[9];
+        <tr>
+            <td><b>17h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])seventeenToEighteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] eighteenToNineteen = (ClientTrainingDTO[])ViewBag.Tranings[10];
+        <tr>
+            <td><b>18h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])eighteenToNineteen)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] nineteenToTwenty = (ClientTrainingDTO[])ViewBag.Tranings[11];
+        <tr>
+            <td> <b> 19h </b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])nineteenToTwenty)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] twentyToTwentyone = (ClientTrainingDTO[])ViewBag.Tranings[12];
+        <tr>
+            <td> <b>20h </b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])twentyToTwentyone)
+            {
+                @cell(training)
+            }
+        </tr>
+
+        ClientTrainingDTO[] twentyoneToTwentytwo = (ClientTrainingDTO[])ViewBag.Tranings[13];
+        <tr>
+            <td> <b> 21h</b></td>
+            @foreach (ClientTrainingDTO training in (ClientTrainingDTO[])twentyoneToTwentytwo)
+            {
+                @cell(training)
+            }
+        </tr>
+    }
+
+</table>
+
+

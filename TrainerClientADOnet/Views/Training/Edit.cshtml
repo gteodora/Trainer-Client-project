@@ -1,0 +1,94 @@
+﻿@model TrainerClientADOnet.Models.DTO.TrainingDTO
+@using TrainerClientADOnet.Utilities;
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+
+@{
+    Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+    int StartTimeHour = DateTime.Parse(HttpUtility.ParseQueryString(uri.Query).Get("startTime").Trim()).Hour;
+}
+@{
+    //uri
+
+    var programIdFromUri = HttpUtility.ParseQueryString(uri.Query).Get("programId").Trim();
+    DateTime monday = ViewBag.SelectedMonday;
+    var sunday = monday.AddDays(6);
+
+}
+<p>
+    @Html.ActionLink("Delete", "Delete", new { id = @Model.Id, programId = programIdFromUri, monday=monday, sunday=sunday })
+</p>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>TrainingDTO</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.ProgramId)
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TrainingTypeId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.TrainingTypeId, Utility.returnSelectListOfTrainingTypes(), " Select training type ", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.TrainingTypeId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.StartTime, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.StartTime, new { htmlAttributes = new { @class = "form-control", @readonly = true } })
+                @Html.ValidationMessageFor(model => model.StartTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @Html.Label("Duration (hours)", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBox("Duration", Utility.GetTrainingDuration(@Model.ProgramId, @Model.Description, @Model.StartTime, @Model.TrainingTypeId), htmlAttributes: new { @type = "number", @class = "form-control", @min = "1", @max = Utility.GetMaxTrainingDurationTime(@Model.ProgramId, @Model.Description, @Model.StartTime, @Model.TrainingTypeId) })
+                @Html.ValidationMessage("Duration", "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @*
+            <div class="form-group">
+                @Html.LabelFor(model => model.EndTime, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.EndTime, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.EndTime, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        *@
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<div>
+    @Html.ActionLink("Back to List", "TrainingPlanForProgram", new { programId = programIdFromUri, monday = monday, sunday = sunday }, null)
+
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

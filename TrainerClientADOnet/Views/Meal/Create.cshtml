@@ -1,0 +1,80 @@
+﻿@model TrainerClientADOnet.Models.DTO.MealDTO
+@using TrainerClientADOnet.Utilities;
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+@{
+
+    Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+    DateTime StartTime = DateTime.Parse(HttpUtility.ParseQueryString(uri.Query).Get("date").Trim());
+    int programId = int.Parse(HttpUtility.ParseQueryString(uri.Query).Get("programId"));  
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>MealDTO</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.ProgramId)
+    @Html.HiddenFor(model => model.MealTypeId)
+
+
+
+    @*
+        <div class="form-group">
+            @Html.LabelFor(model => model.MealTypeId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.MealTypeId, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.MealTypeId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    *@
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.StartTime, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DisplayFor(model => model.StartTime, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.StartTime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Recurring (weeks in same time)", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBox("Recurring", "1", htmlAttributes: new { @type = "number", @class = "form-control", @min = "1", @max = Utility.GetMaxTrainingReccuringTimeCreate(StartTime, programId) })
+            @Html.ValidationMessage("Recurring", "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextAreaFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+@{ 
+     DateTime monday = ViewBag.SelectedMonday;
+}
+<div>
+  
+    @Html.ActionLink("Back to List", "MealPlanForProgram", new { programId = programId,  monday=monday}, null)
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,82 @@
+﻿@using Microsoft.AspNet.Identity;
+@using TrainerClientADOnet.Utilities;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @*   @if (User.IsInRole("Trener"))
+                     {
+                    @Html.ActionLink("Trainer helper", "Index", "Client", new { area = "" }, new { @class = "navbar-brand" })
+                     }*@
+                @Html.ActionLink("Trainer helper", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    @* <li>@Html.ActionLink("Home", "Index", "Home")</li>*@
+
+
+                    @*Ovo samo moze da TRENER vidi*@
+                    @{
+                        DateTime thisWeekMonday = Utility.GetThisWeekMonday();
+
+                    }
+                    @if (User.IsInRole("Trener"))
+                    {
+                        <li>@Html.ActionLink("Clients", "Index", "Client")</li>
+                        <li>@Html.ActionLink("Goal types", "Index", "GoalType")</li>
+                        <li>@Html.ActionLink("Meal types", "Index", "MealType")</li>
+                        <li>@Html.ActionLink("Training types", "Index", "TrainingType")</li>
+                        <li>@Html.ActionLink("Trainings with me", "AllTrainerTrainings", "Training", new { monday = thisWeekMonday }, null)</li>
+                    }
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        @*Ovo samo moze da ADMIN vidi*@
+                        <li>@Html.ActionLink("Roles", "Index", "Role")</li>
+                        <li>@Html.ActionLink("Users", "Index", "UserRole")</li>
+                    }
+
+                    @if (User.IsInRole("Klijent"))
+                    {
+                        var idCurrentLoggedUser = HttpContext.Current.User.Identity.GetUserId();
+                        @*Ovo samo moze da KLIJENT vidi*@
+                        <li>@Html.ActionLink("Programs", "AllProgramsOfClient", "Program", new { clientId = idCurrentLoggedUser }, null)</li>
+                    }
+
+                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                    <li>@Html.ActionLink("About", "About", "Home")</li>
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - Trainer helper</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

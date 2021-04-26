@@ -1,0 +1,51 @@
+﻿@model TrainerClientADOnet.Models.DTO.MealDTO
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>MealDTO</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ProgramId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProgramId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.MealTypeId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.MealTypeId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.StartTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StartTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @{Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri); }
+    @Html.ActionLink("Back to List", "MealPlanForProgram", new { programId = HttpUtility.ParseQueryString(uri.Query).Get("programId").Trim() }, null)
+
+</p>

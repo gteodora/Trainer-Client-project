@@ -1,0 +1,57 @@
+﻿@model IEnumerable<TrainerClientADOnet.Models.DTO.ProgramDTO>
+
+@{
+    ViewBag.Title = "AllPrograms";
+}
+
+<h2>All Programs for selected client</h2>
+
+@*if (Model.Any()) { }*@
+<p>
+    <!-- Html.ActionLink("Create New Program", "CreateProgramForClient", new { id = Model.ElementAtOrDefault(1).ClientId })    -->
+    @Html.ActionLink("Create New Program", "CreateProgramForClient", new { client_id = Url.RequestContext.RouteData.Values["id"] })
+</p>
+
+<table class="table">
+    <tr>
+
+        <th>
+            @Html.DisplayNameFor(model => model.GoalTypeId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.StartTime)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EndTime)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.GoalTypeId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+
+</table>

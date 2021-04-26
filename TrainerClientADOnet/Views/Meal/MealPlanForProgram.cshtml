@@ -1,0 +1,228 @@
+﻿@model  TrainerClientADOnet.Models.DTO.MealDTO
+@using System.Data;
+@using TrainerClientADOnet.Models.DTO;
+@using Microsoft.AspNet.Identity;
+@using TrainerClientADOnet.Utilities;
+
+<head>
+    @section Scripts{
+        <script type="text/javascript" src="@Url.Content("~/Scripts/jquery-3.3.1.min.js")"></script>
+        <script type="text/javascript">
+
+            function copyToClipboard(message) {
+                var msg = message;
+                console.log(msg);
+                //use msg now
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val(msg).select();
+                document.execCommand("copy");
+                $temp.remove();
+            };
+        </script>
+    }
+</head>
+
+@{
+    var firstDay = DayOfWeek.Monday;
+    var secondDay = DayOfWeek.Tuesday;
+    var thirdDay = DayOfWeek.Wednesday;
+    var fourthDay = DayOfWeek.Thursday;
+    var fifthDay = DayOfWeek.Friday;
+    var sixthDay = DayOfWeek.Saturday;
+    var seventhDay = DayOfWeek.Sunday;
+
+    var pickedWeekMondayDate = ViewBag.SelectedMonday;
+    var pickedWeekTuesdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(1);
+    var pickedWeekWednesdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(2);
+    var pickedWeekFridayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(4);
+    var pickedWeekThursdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(3);
+    var pickedWeekSaturdayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(5);
+    var pickedWeekSundayDate = ((DateTime)ViewBag.SelectedMonday).AddDays(6);
+    //uri
+    Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+    var programIdFromUri = HttpUtility.ParseQueryString(uri.Query).Get("programId").Trim();
+    //ime i prezime klijenta:
+    string fullName = Utility.GetFullNameByProgramId(int.Parse(programIdFromUri));
+
+    var previousMonday = Utility.previousMonday(ViewBag.SelectedMonday);
+    var nextMonday = Utility.nextMonday(ViewBag.SelectedMonday);
+}
+<h2>
+    Meal plan for client
+    <b>@fullName </b>
+</h2>
+@* Dugmad za prebacivanje na sledecu i prethodnu sedmicu *@
+<button type="button" onclick="location.href='@Url.Action("MealPlanForProgram", "Meal", new { programId = programIdFromUri, monday = previousMonday })'">
+    <img alt="Previous" title="New" src="~/Images/Button/left.png" style="width: 15px; height:20px">
+</button>
+<button type="button" onclick="location.href='@Url.Action("MealPlanForProgram", "Meal", new { programId = programIdFromUri, monday  = nextMonday })'">
+
+    <img alt="Next" title="New" src="~/Images/Button/right.png" style="width: 15px; height:20px">
+</button>
+
+@if (@pickedWeekMondayDate.ToString("MMMM").Equals(@pickedWeekSundayDate.ToString("MMMM")))
+{//prikaz: July 20 - 27, 20
+    <h3>
+        @pickedWeekMondayDate.ToString("MMMM") @pickedWeekMondayDate.ToString("dd") - @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yy")
+    </h3>
+}
+else //prikaz: July 27 - August 02, 20
+{
+    if (@pickedWeekMondayDate.ToString("yy").Equals(@pickedWeekSundayDate.ToString("yy")))
+    {
+        <h3>
+            @pickedWeekMondayDate.ToString("MMMM")  @pickedWeekMondayDate.ToString("dd") - @pickedWeekSundayDate.ToString("MMMM") @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yy")
+        </h3>
+    }
+    else //prikaz: December 27, 2020 - Januar 02, 2021
+    {
+        <h3>
+            @pickedWeekMondayDate.ToString("MMMM")  @pickedWeekMondayDate.ToString("dd"), @pickedWeekMondayDate.ToString("yyyy") - @pickedWeekSundayDate.ToString("MMMM") @pickedWeekSundayDate.ToString("dd"), @pickedWeekSundayDate.ToString("yyyy")
+        </h3>
+    }
+}
+<style>
+    td.actionCreate {
+        zoom: 1;
+        filter: alpha(opacity=0);
+        opacity: 0;
+    }
+
+    td:hover {
+        zoom: 1;
+        filter: alpha(opacity=100);
+        opacity: 1;
+    }
+
+    td.actionsAloneTraining {
+        background-color: #ffebcc;
+        filter: alpha(opacity=0);
+    }
+    </style>
+
+@functions{
+    public HtmlString cell(MealDTO meal)
+    {
+        Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+        var programIdFromUri = HttpUtility.ParseQueryString(uri.Query).Get("programId").Trim();
+        var monday = ViewBag.SelectedMonday;
+        String result = "<td>" + @meal.Description;
+        String create = (@Html.ActionLink("+", "Create", new { id = meal.Id, mealTypeId = meal.MealTypeId, date = meal.StartTime, programId = programIdFromUri, monday = monday }, new { @class = "btnCreate" })).ToString();
+        String edit = (@Html.ActionLink("Edit", "Edit", new { id = meal.Id,  monday = monday, date = meal.StartTime, mealTypeId = meal.MealTypeId, programId = meal.ProgramId })).ToString();
+        // String Details= ()
+        String details = (@Html.ActionLink("Details", "Details", new { id = meal.Id, date = meal.StartTime, mealTypeId = meal.MealTypeId, programId = programIdFromUri })).ToString();
+
+         var description = meal.Description;
+        var image =@Url.Content("~/Images/Button/cb5.png");
+       //     description=description.TrimEnd();
+        String copy = " <button type=\"button\" id=\"copyButton\" runat=\"server\" onClick=\" copyToClipboard(\'"+description+"\'); \" style=\"background-color: Transparent; border: none;\" >  <img src=\""+image+"\" style=\"height:20px;width:15px;color:blue\" title=\"Copy to clipboard description\" /> </button>"; // @* *@
+
+
+
+        if (User.IsInRole(Utility.TRAINER_ROLE))
+        {
+            if (meal.Id > 0)
+            {
+                return new HtmlString(result + edit + copy + "</td>");
+            }
+            else
+            {
+                result = "<td class=\"actionCreate\">" + @meal.Description;
+                return new HtmlString(result + create + "</td>");
+            }
+        }
+        else if (@meal.Description != null)
+        {
+            return new HtmlString(result + details + "</td>");
+        }
+        return new HtmlString("<td></td>");
+    }
+}
+
+
+<table class="table" border="1">
+    <tr>
+        <th>
+            @String.Empty
+        </th>
+        <th>
+            @firstDay.ToString()
+            <p>
+                @pickedWeekMondayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @secondDay.ToString()
+            <p>
+                @pickedWeekTuesdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @thirdDay.ToString()
+            <p>
+                @pickedWeekWednesdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @fourthDay.ToString()
+            <p>
+                @pickedWeekThursdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @fifthDay.ToString()
+            <p>
+                @pickedWeekFridayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @sixthDay.ToString()
+            <p>
+                @pickedWeekSaturdayDate.ToString("dd")
+            </p>
+        </th>
+        <th>
+            @seventhDay.ToString()
+
+            <p>
+                @pickedWeekSundayDate.ToString("dd")
+            </p>
+        </th>
+    </tr>
+
+    @{
+        MealDTO[] breakfasts = (MealDTO[])ViewBag.Meals[0];
+        <tr>
+            <td>Breakfast</td>
+            @foreach (MealDTO meal in (MealDTO[])breakfasts)
+            {
+                @cell(meal)
+            }
+        </tr>
+        MealDTO[] lunchs = (MealDTO[])ViewBag.Meals[1];
+        <tr>
+            <td>Lunch</td>
+            @foreach (MealDTO meal in (MealDTO[])lunchs)
+            {
+                @cell(meal)
+            }
+        </tr>
+        MealDTO[] diners = (MealDTO[])ViewBag.Meals[2];
+        <tr>
+            <td>Dinner</td>
+            @foreach (MealDTO meal in (MealDTO[])diners)
+            {
+                @cell(meal)
+            }
+        </tr>
+    }
+
+</table>
+@{
+    var clientId = Utility.getClientIdForProgramId(programIdFromUri);
+}
+<p>
+
+    @Html.ActionLink("Back to client's programs", "AllProgramsOfClient", "Program", new { clientId = clientId }, null)
+</p>

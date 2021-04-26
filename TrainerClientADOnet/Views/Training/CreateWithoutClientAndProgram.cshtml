@@ -1,0 +1,96 @@
+﻿@model TrainerClientADOnet.Models.DTO.ClientTrainingDTO
+@using TrainerClientADOnet.Utilities;
+
+@{
+    ViewBag.Title = "CreateWithoutClientAndProgram";
+}
+
+<h2>CreateWithoutClientAndProgram</h2>
+
+@{
+    Uri uri = new Uri(HttpContext.Current.Request.Url.AbsoluteUri);
+    DateTime StartTime = DateTime.Parse(HttpUtility.ParseQueryString(uri.Query).Get("startTime").Trim());
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>ClientTrainingDTO</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.FirstName)
+    @Html.HiddenFor(model => model.LastName)
+
+
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ClientId, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.ClientId, Utility.returnSelectListOfClients(), " Select client ", new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ClientId, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProgramId, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.ProgramId, Utility.returnSelectListProgramsOfClient(@Model.ClientId), " Select program ", new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ProgramId, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.TrainingTypeId, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.TrainingTypeId, Utility.returnSelectListOfTrainingTypes(), " Select training type ", new { htmlAttributes = new { @class = "form-control" } });
+            @Html.ValidationMessageFor(model => model.TrainingTypeId, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.StartTime, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.StartTime, new { htmlAttributes = new { @readonly = true, @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.StartTime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Duration (hours)", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBox("Duration", "1", htmlAttributes: new { @type = "number", @class = "form-control", @min = "1", @max = Utility.GetMaxTrainingDurationTimeCreate2(StartTime) })
+            @Html.ValidationMessage("Duration", "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Recurring (weeks in same time)", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBox("Recurring", "1", htmlAttributes: new { @type = "number", @class = "form-control", @min = "1", @max = Utility.GetMaxTrainingReccuringTimeCreate2(StartTime) })
+            @Html.ValidationMessage("Recurring", "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "AllTrainerTrainings", "Trainer")
+</div>
